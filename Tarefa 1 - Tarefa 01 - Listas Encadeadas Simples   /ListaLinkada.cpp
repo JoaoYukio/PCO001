@@ -1,6 +1,10 @@
 #include<iostream>
+#include <chrono>
+#include <thread>
 
 using namespace std;
+using namespace std::this_thread; // sleep_for, sleep_until
+using namespace std::chrono; // nanoseconds, system_clock, seconds
 
 
 class Node{
@@ -28,20 +32,26 @@ class ListaLinkada{
     public:
         Node* head;
         Node* tail;
+        bool isEmpty();
         bool insertIni(int val);
         bool insertFinal(int val);
         int remove(int val);
         int removeIni();
-        int removeFinal();
         int search(int val);
         void display();
         void clear();
+        void interface();
     ListaLinkada()
     {
         this->head = nullptr;
         this->tail = nullptr;
     }
 };
+
+bool ListaLinkada::isEmpty()
+{
+    return (head == nullptr)?true:false;
+}
 
 bool ListaLinkada::insertIni(int val)
 {
@@ -53,7 +63,7 @@ bool ListaLinkada::insertIni(int val)
         return true;
     }
     Node* p = new Node(val, head);
-    if(p)// tem espaço na heap?
+    if(p != nullptr)// tem espaço na heap?
     {
         this->head = p;
         return true;
@@ -72,7 +82,7 @@ bool ListaLinkada::insertFinal(int val)
         return true;
     }
     Node* p = new Node(val);
-    if(p)
+    if(p != nullptr)
     {
         this->tail->next = p;
         this->tail = p;
@@ -133,6 +143,16 @@ int ListaLinkada::remove(int val)
 {
     int indice = search(val);
 
+    if(indice != -1 and head == tail)// encontrou o elemento e so tem ele
+    {
+        Node* p = head;
+        int data = p->data;
+        head = nullptr;
+        tail = nullptr;
+        delete p;
+        return data;
+    }
+
     if(indice == 0)//encontrou o elemento no primeiro elemento
     {
         Node* p = head;
@@ -166,7 +186,15 @@ int ListaLinkada::remove(int val)
 int ListaLinkada::removeIni()
 {
     Node* p = head;
-    if(p)
+    if(head == tail and not isEmpty())// somente um elemento
+    {
+        int data = head -> data;
+        head = nullptr;
+        tail = nullptr;
+        delete p;
+        return data;
+    }
+    if(not isEmpty())
     {
         //lista nao esta vazia
         int data = p ->data;
@@ -178,24 +206,128 @@ int ListaLinkada::removeIni()
     return -3; // Erro de underflow
 }
 
-int ListaLinkada::removeFinal()
+
+void clearTerminal()
 {
-    Node* p = tail;
-    //Eu nao consigo remover do final em O(1), precisaria ter um link de volta no Node
-    Node* t = head;
-    while(t->next != p)
+    #if defined(_WIN32) || defined(_WIN64)
+        system("cls");
+    #else defined(__linux__) || defined(__unix__)
+        system("clear");
+    #endif
+    return;
+}
+
+void ListaLinkada::interface()
+{
+    int op;
+    int val = 0;
+    int tempoAmostra = 5;
+    int pos;
+    for(;;)
     {
-        t = t->next;
+        clearTerminal();
+        cout << "Escolha o que quer fazer: \n";
+        cout << "   (1) Inserir no inicio\n";
+        cout << "   (2) Inserir no final\n";
+        cout << "   (3) Remover no inicio\n";
+        cout << "   (4) Remover elemento n\n";
+        cout << "   (5) Pesquisar na lista\n";
+        cout << "   (6) Imprimir a lista\n";
+        cout << "   (7) Limpar a lista\n";
+        cout << "   (8) Definir tempo de amostra da lista na função (6)\n";
+        cout << "   (9) Ver se a lista esta vazia\n";
+        cout << "   (-1) Sair\n";
+
+        cin >> op;
+
+        if(op == -1)
+        {
+            cout << "Obrigado por usar o programa\n";
+            return;
+        }
+        switch (op)
+        {
+        case 1:
+            clearTerminal();
+            cout << "Digite o valor que gostaria de inserir\n";
+            cin >> val;
+            insertIni(val);
+            break;
+        case 2:
+            clearTerminal();
+            cout << "Digite o valor que gostaria de inserir\n";
+            cin >> val;
+            insertFinal(val);
+            break;
+        case 3:
+            clearTerminal();
+            removeIni();
+            break;
+        case 4:
+            clearTerminal();
+            cout << "Digite o valor que gostaria de remover\n";
+            cin >> val;
+            remove(val);
+            break;
+        case 5: 
+            clearTerminal();
+            cout << "Digite o valor que gostaria de pesquisar\n";
+            cin >> val;
+            pos = search(val);
+            if(pos == -1)
+            {
+                cout << "Valor nao encontrado\n";
+            }else{
+                cout << "Valor encontrado em: " << pos << '\n';
+            }
+            sleep_for(seconds(2));
+            break;
+        case 6:
+            clearTerminal();
+            cout<< "Mostrando a lista por "<< tempoAmostra <<" segundos\n";
+            display();
+            sleep_for(seconds(tempoAmostra));
+            break;
+        case 7:
+            clearTerminal();
+            clear();
+            break;
+        case 8:
+            clearTerminal();
+            cout << "Por quantos segundos devo mostrar a lista?\n";
+            cin >> tempoAmostra;
+            if(tempoAmostra <= 0 or tempoAmostra > 1000)
+            {
+                cout << "Valor invalido, alterando para o default 5 segundos\n";
+                tempoAmostra = 5;
+            }
+            break;
+        case 9:
+            clearTerminal();
+            if(isEmpty())
+            {
+                cout << "Lista vazia\n";
+            }else{
+                cout << "Lista nao vazia\n";
+            }
+            sleep_for(seconds(2));
+            break;
+        default:
+            clearTerminal();
+            cout << "Opção invalida\n";
+            sleep_for(seconds(2));
+            break;
+        }
     }
-    tail = t;
-    int data = p->data;
-    delete p;
-    return data;
 }
 
 int main()
 {
     ListaLinkada L = ListaLinkada();
+
+
+    /*
+    Testes iniciais
 
     cout << "Insirindo no inicio\n";
     for(int i = 0; i<10; i++)
@@ -220,9 +352,10 @@ int main()
     L.display();
     cout << "Removendo o elemento 12\n";
     cout << L.remove(12) << "\n";
-    L.display();
+    L.display();*/
 
-    //TODO: criar a interface para testar as funções
+    L.interface();
+
 
     return 0;
 }
