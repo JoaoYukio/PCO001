@@ -1,10 +1,26 @@
 #include<iostream>
-#include <chrono>
-#include <thread>
+
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+    void sleepSec(int sec)
+    {
+        Sleep(1000*sec);
+        return;
+    }
+#else defined(__linux__) || defined(__unix__)
+    #include <chrono>
+    #include <thread>
+    using namespace std::this_thread; // sleep_for, sleep_until
+    using namespace std::chrono; // nanoseconds, system_clock, seconds
+    void sleepSec(int sec)
+    {
+        sleep_for(seconds(sec));
+        return;
+    }
+#endif
+
 
 using namespace std;
-using namespace std::this_thread; // sleep_for, sleep_until
-using namespace std::chrono; // nanoseconds, system_clock, seconds
 
 
 class Node{
@@ -40,7 +56,7 @@ class ListaLinkada{
         int search(int val);
         void display();
         void clear();
-        void interface();
+        void interfaceUser();
     ListaLinkada()
     {
         this->head = nullptr;
@@ -217,7 +233,7 @@ void clearTerminal()
     return;
 }
 
-void ListaLinkada::interface()
+void ListaLinkada::interfaceUser()
 {
     int op;
     int val = 0;
@@ -280,13 +296,15 @@ void ListaLinkada::interface()
             }else{
                 cout << "Valor encontrado em: " << pos << '\n';
             }
-            sleep_for(seconds(2));
+            //sleep_for(seconds(2));
+            sleepSec(2);
             break;
         case 6:
             clearTerminal();
             cout<< "Mostrando a lista por "<< tempoAmostra <<" segundos\n";
             display();
-            sleep_for(seconds(tempoAmostra));
+            //sleep_for(seconds(tempoAmostra));
+            sleepSec(tempoAmostra);
             break;
         case 7:
             clearTerminal();
@@ -310,12 +328,14 @@ void ListaLinkada::interface()
             }else{
                 cout << "Lista nao vazia\n";
             }
-            sleep_for(seconds(2));
+            //sleep_for(seconds(2));
+            sleepSec(2);
             break;
         default:
             clearTerminal();
             cout << "Opção invalida\n";
-            sleep_for(seconds(2));
+            //sleep_for(seconds(2));
+            sleepSec(2);
             break;
         }
     }
@@ -354,7 +374,7 @@ int main()
     cout << L.remove(12) << "\n";
     L.display();*/
 
-    L.interface();
+    L.interfaceUser();
 
 
     return 0;
