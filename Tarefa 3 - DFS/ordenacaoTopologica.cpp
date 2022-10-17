@@ -75,7 +75,7 @@ void graph::DFS(int stNode)
     if(visited[stNode] == 0)
     {
         visited[stNode] = 1;
-        cout << stNode << ' ';
+        //cout << stNode << ' ';
         for(int i = 0; i < numNodes; i++)
         {
             if(matAd[stNode][i] == 1 and visited[i] == 0)
