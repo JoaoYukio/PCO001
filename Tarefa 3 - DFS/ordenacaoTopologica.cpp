@@ -28,6 +28,9 @@ class graph{
     }
     void displayMat();
     int* visited;
+    void displayLista();
+    void displayLista(string enc[]);
+
     graph(int numNodes)
     {
         this->numNodes = numNodes;
@@ -98,6 +101,21 @@ void graph::DFS_EXP()
     }
 }
 
+void graph::displayLista()
+{
+    for(auto i = lista.begin(); i != lista.end(); i++)
+    {
+        cout << *i << ' ';
+    }
+}
+
+void graph::displayLista(string enc[])
+{
+    for(auto i = lista.begin(); i != lista.end(); i++)
+    {
+        cout << enc[*i] << ' ';
+    }
+}
 
 int main()
 {
@@ -127,16 +145,20 @@ int main()
     grafo.addEdge(6, 8);
     grafo.addEdge(7, 8);
 
+    cout << "Mostrando a matriz de adjacencia\n";
+
     grafo.displayMat();
+
+    cout << "Ordenacao topologica\n";
 
     grafo.DFS_EXP();
 
     //print da lista
-    for(auto i = grafo.lista.begin(); i != grafo.lista.end(); i++)
+    /*for(auto i = grafo.lista.begin(); i != grafo.lista.end(); i++)
     {
         cout << roupas[*i] << ' ';
-    }
-
+    }*/
+    grafo.displayLista(roupas);//para ver somente os indices dos nos usar grafo.displayLista()
 
     return 0;
 }
