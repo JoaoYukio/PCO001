@@ -20,7 +20,7 @@ class graph{
         }
     }
     void DFS(int stNode);
-    void DFS_EXP(int stNode);
+    void DFS_EXP();
     void resetVisited(){
         for(int i = 0; i<numNodes; i++){
             visited[i] = 0;
@@ -81,17 +81,20 @@ void graph::DFS(int stNode)
             if(matAd[stNode][i] == 1 and visited[i] == 0)
             {
                 DFS(i);
-                lista.push_front(stNode);
             }
         }
+        lista.push_front(stNode);
     }
 }
 
-void graph::DFS_EXP(int stNode)
+void graph::DFS_EXP()
 {
-    if(visited[stNode] == 0)
+    for(int i = 0; i<numNodes;i++)
     {
-        DFS(stNode);
+        if(visited[i] == 0)
+        {
+            DFS(i);
+        }
     }
 }
 
@@ -111,7 +114,7 @@ int main()
         7 - gravata
         8 - paleto
     */
-
+    string roupas[] = {"Cueca", "Relogio", "Meia", "Calca", "Camisa", "Tenis", "Cinto", "Gravata", "Paleto"};
 
     grafo.addEdge(0, 5);
     grafo.addEdge(0, 3);
@@ -124,13 +127,16 @@ int main()
     grafo.addEdge(6, 8);
     grafo.addEdge(7, 8);
 
+    grafo.displayMat();
 
-    grafo.DFS_EXP(0);
+    grafo.DFS_EXP();
 
     //print da lista
     for(auto i = grafo.lista.begin(); i != grafo.lista.end(); i++)
     {
-        cout << *i << ' ';
+        cout << roupas[*i] << ' ';
     }
+
+
     return 0;
 }
