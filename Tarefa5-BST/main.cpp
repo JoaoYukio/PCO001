@@ -1,6 +1,25 @@
 #include<iostream>
 #include<queue>
 
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+    void sleepSec(int sec)
+    {
+        Sleep(1000*sec);
+        return;
+    }
+#else defined(__linux__) || defined(__unix__)
+    #include <chrono>
+    #include <thread>
+    using namespace std::this_thread; // sleep_for, sleep_until
+    using namespace std::chrono; // nanoseconds, system_clock, seconds
+    void sleepSec(int sec)
+    {
+        sleep_for(seconds(sec));
+        return;
+    }
+#endif
+
 using namespace std;
 
 class node{
@@ -81,10 +100,11 @@ class BST{
             }
         }
         void insert(node* r,int data);
-        void remove(node* r,int data);
+        node* remove(node* r,int data);
         node* search(node* r, int data);
         int Altura(node* r);
-        void printTree();
+        void printBT(const std::string& prefix, node* n, bool isLeft);
+        void interfaceUser();
 };
 
 void BST::insert(node* r, int data)
@@ -113,51 +133,61 @@ void BST::insert(node* r, int data)
     }
 }
 
-// Remove um nó da árvore de forma recursiva
-// ARRUMAR ISSO AQUI
-void BST::remove(node* r, int data)
+//remove a node recursively
+node* BST::remove(node* r, int data)
 {
-    if(r != nullptr)
+    // Procura o elemento
+    if(r == nullptr)
     {
-        if(data < r->getData())
+        return r;
+    }
+    else if(data < r->getData())
+    {
+        r->setLeft(remove(r->getLeft(), data));
+    }
+    else if(data > r->getData())
+    {
+        r->setRight(remove(r->getRight(), data));
+    }
+    else
+    {
+        // So entra aqui caso o elemento seja encontrado
+        // Caso 1: No folha
+        if(r->getLeft() == nullptr && r->getRight() == nullptr)
         {
-            remove(r->getLeft(), data);
+            delete r;
+            r = nullptr;
         }
-        else if(data > r->getData())
+        // Caso 2: So tem filho a direita
+        else if(r->getLeft() == nullptr)
         {
-            remove(r->getRight(), data);
+            node* temp = r;
+            r = r->getRight();
+            delete temp;
         }
+        // Caso 3: So tem filho a esquerda
+        else if(r->getRight() == nullptr)
+        {
+            node* temp = r;
+            r = r->getLeft();
+            delete temp;
+        }
+        // Caso 4: Tem dois filhos
         else
         {
-            if(r->getLeft() == nullptr && r->getRight() == nullptr)
+            //Encontra o primeiro sucessor do elemento
+            node* temp = r->getRight();
+            while(temp->getLeft() != nullptr)
             {
-                delete r;
-                r = nullptr;
+                temp = temp->getLeft();
             }
-            else if(r->getLeft() == nullptr)
-            {
-                node* aux = r;
-                r = r->getRight();
-                delete aux;
-            }
-            else if(r->getRight() == nullptr)
-            {
-                node* aux = r;
-                r = r->getLeft();
-                delete aux;
-            }
-            else
-            {
-                node* aux = r->getRight();
-                while(aux->getLeft() != nullptr)
-                {
-                    aux = aux->getLeft();
-                }
-                r->setData(aux->getData());
-                remove(r->getRight(), aux->getData());
-            }
+            // Troca o valor do elemento pelo do sucessor
+            r->setData(temp->getData());
+            // Remove o sucessor
+            r->setRight(remove(r->getRight(), temp->getData()));
         }
     }
+    return r;
 }
 
 node* BST::search(node* r,int data)
@@ -184,7 +214,7 @@ int BST::Altura(node* r)
     return max(altEsq, altDir); // + 1
 }
 
-void printBT(const std::string& prefix, node* n, bool isLeft)
+void BST::printBT(const std::string& prefix, node* n, bool isLeft)
 {
     if( n != nullptr )
     {
@@ -201,26 +231,103 @@ void printBT(const std::string& prefix, node* n, bool isLeft)
     }
 }
 
+void clearTerminal()
+{
+    #if defined(_WIN32) || defined(_WIN64)
+        system("cls");
+    #else defined(__linux__) || defined(__unix__)
+        system("clear");
+    #endif
+    return;
+}
+
+void BST::interfaceUser()
+{
+    int op;
+    int val = 0;
+    int tempoAmostra = 5;
+    node* p = nullptr;
+    //int pos;
+    for(;;)
+    {
+        clearTerminal();
+        cout << "Escolha o que quer fazer: \n";
+        cout << "   (1) Inserir valor\n";
+        cout << "   (2) Remover valor\n";
+        cout << "   (3) Buscar\n";
+        cout << "   (4) Altura da arvore\n";
+        cout << "   (5) Imprimir\n";
+        cout << "   (6) Definir tempo de amostra da lista na função (3), (4) e (5)\n";
+        cout << "   (-1) Sair\n";
+
+        cin >> op;
+
+        if(op == -1)
+        {
+            cout << "Obrigado por usar o programa\n";
+            return;
+        }
+        switch (op)
+        {
+        case 1:
+            clearTerminal();
+            cout << "Digite o valor que gostaria de inserir\n";
+            cin >> val;
+            insert(root, val);
+            break;
+        case 2:
+            clearTerminal();
+            cout << "Digite o valor que gostaria de remover\n";
+            cin >> val;
+            remove(root, val);
+            break;
+        case 3:
+            clearTerminal();
+            cout << "Digite o valor que gostaria de buscar\n";
+            cin >> val;
+            p = search(root, val);
+            if(p == nullptr)
+            {
+                cout << "Valor não encontrado\n";
+            }
+            else
+            {
+                cout << "Valor encontrado\n";
+            }
+            sleepSec(tempoAmostra);
+            break;
+        case 4:
+            clearTerminal();
+            cout << "Altura da arvore: "<< Altura(root) << "\n";
+            sleepSec(tempoAmostra);
+            break;
+        case 5: 
+            clearTerminal();
+            cout << "Imprimindo arvore:\n";
+            printBT("", root, false);
+            sleepSec(tempoAmostra);
+            break;
+        case 6:
+            clearTerminal();
+            cout << "Digite o tempo de amostra da lista na função (3), (4) e (5)\n";
+            cin >> tempoAmostra;
+            break;
+        default:
+            clearTerminal();
+            cout << "Opção invalida\n";
+            //sleep_for(seconds(2));
+            sleepSec(2);
+            break;
+        }
+    }
+}
+
 int main()
 {
     node* root = new node(8);
     BST tree(root);
 
-    tree.insert(root, 5);
-    tree.insert(root, 10);
-    tree.insert(root, 2);
-    tree.insert(root, 6);
-    //tree.insert(root, 9);
-    tree.insert(root, 11);
-    
-
-    cout << "inorder: ";
-    tree.inorder(root);
-    cout << endl;
-
-    cout << tree.Altura(tree.root) << "\n";
-
-    printBT("", root, false);
+    tree.interfaceUser();
 
     return 0;
 }
