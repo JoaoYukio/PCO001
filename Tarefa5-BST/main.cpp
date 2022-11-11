@@ -1,4 +1,5 @@
 #include<iostream>
+#include<queue>
 
 using namespace std;
 
@@ -46,14 +47,11 @@ class node{
 };
 
 class BST{
-    private:
-        int altura;
     public:
         node* root;
         BST(node* r)
         {
             this->root = r;
-            this->altura = 0;
         }
         void preorder(node* r)
         {
@@ -83,166 +81,146 @@ class BST{
             }
         }
         void insert(node* r,int data);
-        void remove(int data);
-        node* search(int data);
-        int getAltura();
+        void remove(node* r,int data);
+        node* search(node* r, int data);
+        int Altura(node* r);
         void printTree();
 };
 
-void BST::insert(node* r,int data)
+void BST::insert(node* r, int data)
 {
-    if(r == nullptr)
+    if(data < r->getData())
     {
-        r = new node(data);
-    }else if(r->getData() > data)
-    {
-        insert(r->getLeft(),data);
+        if(r->getLeft() == nullptr)
+        {
+            r->setLeft(new node(data));
+        }
+        else
+        {
+            insert(r->getLeft(), data);
+        }
     }
     else
     {
-        insert(r->getRight(),data);
-    }
-}
-
-void BST::remove(int data)
-{
-    node* aux = this->root;
-    if(aux != nullptr)
-    {
-        if(data < aux->getData())
+        if(r->getRight() == nullptr)
         {
-            BST* left = new BST(aux->getLeft());
-            left->remove(data);
-        }
-        else if(data > aux->getData())
-        {
-            BST* right = new BST(aux->getRight());
-            right->remove(data);
+            r->setRight(new node(data));
         }
         else
         {
-            if(aux->getLeft() == nullptr && aux->getRight() == nullptr)
+            insert(r->getRight(), data);
+        }
+    }
+}
+
+// Remove um nó da árvore de forma recursiva
+// ARRUMAR ISSO AQUI
+void BST::remove(node* r, int data)
+{
+    if(r != nullptr)
+    {
+        if(data < r->getData())
+        {
+            remove(r->getLeft(), data);
+        }
+        else if(data > r->getData())
+        {
+            remove(r->getRight(), data);
+        }
+        else
+        {
+            if(r->getLeft() == nullptr && r->getRight() == nullptr)
             {
-                this->root = nullptr;
+                delete r;
+                r = nullptr;
             }
-            else if(aux->getLeft() == nullptr)
+            else if(r->getLeft() == nullptr)
             {
-                this->root = aux->getRight();
+                node* aux = r;
+                r = r->getRight();
+                delete aux;
             }
-            else if(aux->getRight() == nullptr)
+            else if(r->getRight() == nullptr)
             {
-                this->root = aux->getLeft();
+                node* aux = r;
+                r = r->getLeft();
+                delete aux;
             }
             else
             {
-                node* aux2 = aux->getRight();
-                while(aux2->getLeft() != nullptr)
+                node* aux = r->getRight();
+                while(aux->getLeft() != nullptr)
                 {
-                    aux2 = aux2->getLeft();
+                    aux = aux->getLeft();
                 }
-                aux->setData(aux2->getData());
-                BST* right = new BST(aux->getRight());
-                right->remove(aux2->getData());
+                r->setData(aux->getData());
+                remove(r->getRight(), aux->getData());
             }
         }
     }
 }
 
-node* BST::search(int data)
+node* BST::search(node* r,int data)
 {
-    node* aux = this->root;
-    if(aux != nullptr)
+    if(r == nullptr)return nullptr;
+    if(r->getData() == data)return r;
+
+    if(data < r->getData())
     {
-        if(data < aux->getData())
-        {
-            BST* left = new BST(aux->getLeft());
-            return left->search(data);
-        }
-        else if(data > aux->getData())
-        {
-            BST* right = new BST(aux->getRight());
-            return right->search(data);
-        }
-        else
-        {
-            return aux;
-        }
+        return search(r->getLeft(), data);
     }
-    return nullptr;
+    else
+    {
+        return search(r->getRight(), data);
+    }
 }
 
-int BST::getAltura()
+// Retorna a altura da árvore
+int BST::Altura(node* r)
 {
-    node* aux = this->root;
-    if(aux != nullptr)
-    {
-        BST* left = new BST(aux->getLeft());
-        BST* right = new BST(aux->getRight());
-        int leftAltura = left->getAltura();
-        int rightAltura = right->getAltura();
-        if(leftAltura > rightAltura)
-        {
-            return leftAltura + 1;
-        }
-        else
-        {
-            return rightAltura + 1;
-        }
-    }
-    return 0;
+    if(r == nullptr)return 0;
+    int altEsq = Altura(r->getLeft());
+    int altDir = Altura(r->getRight());
+    return max(altEsq, altDir); // + 1
 }
 
-void BST::printTree()
+void printBT(const std::string& prefix, node* n, bool isLeft)
 {
-    node* aux = this->root;
-    if(aux != nullptr)
+    if( n != nullptr )
     {
-        BST* left = new BST(aux->getLeft());
-        left->printTree();
-        cout << aux->getData() << " ";
-        BST* right = new BST(aux->getRight());
-        right->printTree();
+        std::cout << prefix;
+
+        std::cout << (isLeft ? "├──" : "└──" );
+
+        // print the value of the node
+        std::cout << n->getData() << std::endl;
+
+        // enter the next tree level - left and right branch
+        printBT( prefix + (isLeft ? "│   " : "    "), n->getLeft(), true);
+        printBT( prefix + (isLeft ? "│   " : "    "), n->getRight(), false);
     }
 }
 
 int main()
 {
-    node root = node(10);
-    BST* tree = new BST(&root);
+    node* root = new node(8);
+    BST tree(root);
 
-    tree->insert(tree->root,5);
-    tree->insert(tree->root,15);
-    tree->insert(tree->root,3);
-    tree->insert(tree->root,7);
-    tree->insert(tree->root,12);
-    tree->insert(tree->root,17);
-    tree->insert(tree->root,1);
-    tree->insert(tree->root,4);
-    tree->insert(tree->root,6);
-    tree->insert(tree->root,8);
-
-    cout << "Preorder: ";
-    tree->preorder(tree->root);
-
-    cout << endl << "Inorder: ";
-    tree->inorder(tree->root);
-
-    cout << endl << "Posorder: ";
-    tree->posorder(tree->root);
-
-    cout << endl << "Altura: " << tree->getAltura();
-
-    cout << endl << "Busca: " << tree->search(4)->getData();
-
-    cout << endl << "Remove: ";
-    tree->remove(4);
+    tree.insert(root, 5);
+    tree.insert(root, 10);
+    tree.insert(root, 2);
+    tree.insert(root, 6);
+    //tree.insert(root, 9);
+    tree.insert(root, 11);
     
-    cout << endl << "Inorder: ";
-    tree->inorder(tree->root);
 
-    cout << endl << "Print: ";
-    tree->printTree();
+    cout << "inorder: ";
+    tree.inorder(root);
+    cout << endl;
 
+    cout << tree.Altura(tree.root) << "\n";
+
+    printBT("", root, false);
 
     return 0;
 }
