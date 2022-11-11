@@ -66,9 +66,16 @@ class node{
 };
 
 class BST{
-    public:
+    private:
+        bool rootSet;
         node* root;
-        BST(node* r)
+    public:
+        BST()
+        {
+            this->rootSet = false;
+            this->root = nullptr;
+        }
+        void setRoot(node* r)
         {
             this->root = r;
         }
@@ -133,7 +140,7 @@ void BST::insert(node* r, int data)
     }
 }
 
-//remove a node recursively
+//remove a node recursively <- have a bug if there is not a sucessor
 node* BST::remove(node* r, int data)
 {
     // Procura o elemento
@@ -177,14 +184,28 @@ node* BST::remove(node* r, int data)
         {
             //Encontra o primeiro sucessor do elemento
             node* temp = r->getRight();
-            while(temp->getLeft() != nullptr)
+            if(temp == nullptr)
             {
-                temp = temp->getLeft();
-            }
-            // Troca o valor do elemento pelo do sucessor
-            r->setData(temp->getData());
-            // Remove o sucessor
-            r->setRight(remove(r->getRight(), temp->getData()));
+                // Nao tenha nenhum sucessor
+                // Pega o predecessor
+                temp = r->getLeft();
+                while(temp->getRight() != nullptr)
+                {
+                    temp = temp->getRight();
+                }
+                r->setData(temp->getData());
+                // Remove o sucessor
+                r->setRight(remove(r->getRight(), temp->getData()));
+            }else{
+                while(temp->getLeft() != nullptr)
+                {
+                    temp = temp->getLeft();
+                }
+                // Troca o valor do elemento pelo do sucessor
+                r->setData(temp->getData());
+                // Remove o sucessor
+                r->setRight(remove(r->getRight(), temp->getData()));
+            }    
         }
     }
     return r;
@@ -211,7 +232,7 @@ int BST::Altura(node* r)
     if(r == nullptr)return 0;
     int altEsq = Altura(r->getLeft());
     int altDir = Altura(r->getRight());
-    return max(altEsq, altDir); // + 1
+    return max(altEsq, altDir) + 1; // + 1
 }
 
 void BST::printBT(const std::string& prefix, node* n, bool isLeft)
@@ -250,6 +271,14 @@ void BST::interfaceUser()
     //int pos;
     for(;;)
     {
+        if(this->rootSet == false)
+        {
+            cout << "Digite o valor da raiz: ";
+            cin >> val;
+            this->setRoot(new node(val));
+            this->rootSet = true;
+        }
+
         clearTerminal();
         cout << "Escolha o que quer fazer: \n";
         cout << "   (1) Inserir valor\n";
@@ -298,7 +327,7 @@ void BST::interfaceUser()
             break;
         case 4:
             clearTerminal();
-            cout << "Altura da arvore: "<< Altura(root) << "\n";
+            cout << "Altura da arvore: "<< Altura(root) - 1 << "\n";
             sleepSec(tempoAmostra);
             break;
         case 5: 
@@ -324,9 +353,7 @@ void BST::interfaceUser()
 
 int main()
 {
-    node* root = new node(8);
-    BST tree(root);
-
+    BST tree;
     tree.interfaceUser();
 
     return 0;
