@@ -23,11 +23,10 @@
 using namespace std;
 
 class node{
-    private:
+    public:
     int data;
     node* left;
     node* right;
-    public:
     node(int data)
     {
         this->data = data;
@@ -107,7 +106,7 @@ class BST{
             }
         }
         void insert(node* r,int data);
-        node* remove(node* r,int data);
+        bool remove(node* r,int data);
         node* search(node* r, int data);
         int Altura(node* r);
         void printBT(const std::string& prefix, node* n, bool isLeft);
@@ -141,25 +140,26 @@ void BST::insert(node* r, int data)
 }
 
 //remove a node recursively <- have a bug if there is not a sucessor
-node* BST::remove(node* r, int data)
+bool BST::remove(node* r, int data)
 {
     // Procura o elemento
     if(r == nullptr)
     {
-        return r;
+        return false;
     }
     else if(data < r->getData())
     {
-        r->setLeft(remove(r->getLeft(), data));
+        return remove(r->left, data);
     }
     else if(data > r->getData())
     {
-        r->setRight(remove(r->getRight(), data));
+        return remove(r->right, data);
     }
     else
     {
         // So entra aqui caso o elemento seja encontrado
         // Caso 1: No folha
+        node* aux = r;
         if(r->getLeft() == nullptr && r->getRight() == nullptr)
         {
             delete r;
@@ -168,47 +168,33 @@ node* BST::remove(node* r, int data)
         // Caso 2: So tem filho a direita
         else if(r->getLeft() == nullptr)
         {
-            node* temp = r;
-            r = r->getRight();
-            delete temp;
+            r = r->right;
+            delete aux;
         }
         // Caso 3: So tem filho a esquerda
         else if(r->getRight() == nullptr)
         {
-            node* temp = r;
-            r = r->getLeft();
-            delete temp;
+            r = r->left;
+            delete aux;
         }
         // Caso 4: Tem dois filhos
         else
         {
             //Encontra o primeiro sucessor do elemento
-            node* temp = r->getRight();
-            if(temp == nullptr)
+            node* temp = r->right;
+            while(temp->left != nullptr)
             {
-                // Nao tenha nenhum sucessor
-                // Pega o predecessor
-                temp = r->getLeft();
-                while(temp->getRight() != nullptr)
-                {
-                    temp = temp->getRight();
-                }
-                r->setData(temp->getData());
-                // Remove o sucessor
-                r->setRight(remove(r->getRight(), temp->getData()));
-            }else{
-                while(temp->getLeft() != nullptr)
-                {
-                    temp = temp->getLeft();
-                }
-                // Troca o valor do elemento pelo do sucessor
-                r->setData(temp->getData());
-                // Remove o sucessor
-                r->setRight(remove(r->getRight(), temp->getData()));
-            }    
+                temp = temp->left;
+            }
+            // Troca o valor do elemento pelo do sucessor
+            r->data = temp->data;
+            // Remove o sucessor
+            return remove(r->right, r->data);
+            
         }
+        return true;
     }
-    return r;
+
 }
 
 node* BST::search(node* r,int data)
