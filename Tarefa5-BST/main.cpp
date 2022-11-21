@@ -1,5 +1,6 @@
 #include<iostream>
 #include<queue>
+#include<list>
 
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
@@ -32,36 +33,6 @@ class node{
         this->data = data;
         this->left = this->right = nullptr;
     }
-    node(int data, node* l, node* r)
-    {
-        this->data = data;
-        this->left = l;
-        this->right = r;
-    }
-    void setData(int data)
-    {
-        this->data = data;
-    }
-    void setRight(node* r)
-    {
-        this->right = r;
-    }
-    void setLeft(node* l)
-    {
-        this->left = l;
-    }
-    int getData(void)
-    {
-        return this->data;
-    }
-    node* getLeft(void)
-    {
-        return this->left;
-    }
-    node* getRight()
-    {
-        return this->right;
-    }
 };
 
 class BST{
@@ -69,146 +40,240 @@ class BST{
         bool rootSet;
         node* root;
     public:
+        int numNodes;
+        list<int> nodes;
+        //int* nodes;
         BST()
         {
             this->rootSet = false;
             this->root = nullptr;
+            this->numNodes = 0;
         }
         void setRoot(node* r)
         {
             this->root = r;
+            numNodes++;
         }
-        void preorder(node* r)
+        // pre order
+        void preOrder(node* r)
         {
-            if(r != nullptr)
+            if(r == nullptr)
             {
-                cout << r->getData() << " ";
-                preorder(r->getLeft());
-                preorder(r->getRight());
+                return;
             }
+            cout << r->data << " ";
+            preOrder(r->left);
+            preOrder(r->right);
         }
-        void inorder(node* r)
+        // in order
+
+        void inOrder(node* r)
         {
-            if(r != nullptr)
+            if(r == nullptr)
             {
-                inorder(r->getLeft());
-                cout << r->getData() << " ";
-                inorder(r->getRight());
+                return;
             }
+            inOrder(r->left);
+            cout << r->data << " ";
+            this->nodes.push_back(r->data);
+            inOrder(r->right);
         }
-        void posorder(node* r)
+        // post order
+        void postOrder(node* r)
         {
-            if(r != nullptr)
+            if(r == nullptr)
             {
-                posorder(r->getLeft());
-                posorder(r->getRight());
-                cout << r->getData() << " ";
+                return;
             }
+            postOrder(r->left);
+            postOrder(r->right);
+            cout << r->data << " ";
         }
         void insert(node* r,int data);
         bool remove(node* r,int data);
         node* search(node* r, int data);
         int Altura(node* r);
         void printBT(const std::string& prefix, node* n, bool isLeft);
+        void balanceTree();
         void interfaceUser();
 };
 
+void BST::balanceTree()
+{
+    //nodes = new int[numNodes];
+    this->inOrder(this->root);
+    //print the nodes list
+    for(auto it = this->nodes.begin(); it != this->nodes.end(); it++)
+    {
+        cout << *it << " ";
+    }
+    auto lfront = this->nodes.begin();
+    auto it = this->nodes.begin();
+
+    advance(it, this->nodes.size()/2);
+
+    node* newRoot = new node(*it);
+    //this->setRoot(newRoot);
+    int i = this->nodes.size()/2;
+    while(i>0)
+    {
+        advance(it, i/2);
+        this->insert(newRoot, *it);
+        i = i/2;
+    }
+    i = this->nodes.size()/2;
+    int size = this->nodes.size();
+    while(i < size)
+    {
+        advance(it, i + (i/2));
+        this->insert(newRoot, *it);
+        i = i + (i/2);
+    }
+    this->root = newRoot;
+}
+
+// Insert a node recursively
 void BST::insert(node* r, int data)
 {
-    if(data < r->getData())
+    if(r == nullptr)
     {
-        if(r->getLeft() == nullptr)
+        r = new node(data);
+        numNodes++;
+        return;
+    }
+    if(data < r->data)
+    {
+        if(r->left == nullptr)
         {
-            r->setLeft(new node(data));
+            r->left = new node(data);
+            numNodes++;
+            return;
         }
-        else
-        {
-            insert(r->getLeft(), data);
-        }
+        insert(r->left,data);
     }
     else
     {
-        if(r->getRight() == nullptr)
+        if(r->right == nullptr)
         {
-            r->setRight(new node(data));
+            r->right = new node(data);
+            numNodes++;
+            return;
         }
-        else
-        {
-            insert(r->getRight(), data);
-        }
+        insert(r->right,data);
     }
 }
-
-//remove a node recursively <- have a bug if there is not a sucessor
+//Remove a node with the given data interatively
 bool BST::remove(node* r, int data)
 {
-    // Procura o elemento
     if(r == nullptr)
     {
         return false;
     }
-    else if(data < r->getData())
+    node* temp = r;
+    node* parent = nullptr;
+    while(temp != nullptr)
     {
-        return remove(r->left, data);
-    }
-    else if(data > r->getData())
-    {
-        return remove(r->right, data);
-    }
-    else
-    {
-        // So entra aqui caso o elemento seja encontrado
-        // Caso 1: No folha
-        node* aux = r;
-        if(r->getLeft() == nullptr && r->getRight() == nullptr)
+        if(data < temp->data)
         {
-            delete r;
-            r = nullptr;
+            parent = temp;
+            temp = temp->left;
         }
-        // Caso 2: So tem filho a direita
-        else if(r->getLeft() == nullptr)
+        else if(data > temp->data)
         {
-            r = r->right;
-            delete aux;
+            parent = temp;
+            temp = temp->right;
         }
-        // Caso 3: So tem filho a esquerda
-        else if(r->getRight() == nullptr)
-        {
-            r = r->left;
-            delete aux;
-        }
-        // Caso 4: Tem dois filhos
         else
         {
-            //Encontra o primeiro sucessor do elemento
-            node* temp = r->right;
-            while(temp->left != nullptr)
+            if(temp->left == nullptr and temp->right == nullptr)
             {
-                temp = temp->left;
+                if(parent == nullptr)
+                {
+                    r = nullptr;
+                }
+                else if(parent->left == temp)
+                {
+                    parent->left = nullptr;
+                }
+                else
+                {
+                    parent->right = nullptr;
+                }
+                delete temp;
+                return true;
             }
-            // Troca o valor do elemento pelo do sucessor
-            r->data = temp->data;
-            // Remove o sucessor
-            return remove(r->right, r->data);
-            
+            else if(temp->left == nullptr and temp->right != nullptr)
+            {
+                if(parent == nullptr)
+                {
+                    r = temp->right;
+                }
+                else if(parent->left == temp)
+                {
+                    parent->left = temp->right;
+                }
+                else
+                {
+                    parent->right = temp->right;
+                }
+                delete temp;
+                return true;
+            }
+            else if(temp->right == nullptr and temp->left != nullptr)
+            {
+                if(parent == nullptr)
+                {
+                    r = temp->left;
+                }
+                else if(parent->left == temp)
+                {
+                    parent->left = temp->left;
+                }
+                else
+                {
+                    parent->right = temp->left;
+                }
+                delete temp;
+                return true;
+            }
+            else
+            {
+                node* temp2 = temp->right;
+                while(temp2->left != nullptr)
+                {
+                    temp2 = temp2->left;
+                }
+                temp->data = temp2->data;
+                data = temp2->data;
+                parent = temp;
+                temp = temp->right;
+            }
         }
-        return true;
     }
-
+    return false;
 }
 
-node* BST::search(node* r,int data)
-{
-    if(r == nullptr)return nullptr;
-    if(r->getData() == data)return r;
 
-    if(data < r->getData())
+// Search for a node with the given data
+// Return the node if found
+// Return nullptr if not found
+node* BST::search(node* r, int data)
+{
+    if(r == nullptr)
     {
-        return search(r->getLeft(), data);
+        return nullptr;
+    }
+    else if(data < r->data)
+    {
+        return search(r->left, data);
+    }
+    else if(data > r->data)
+    {
+        return search(r->right, data);
     }
     else
     {
-        return search(r->getRight(), data);
+        return r;
     }
 }
 
@@ -216,8 +281,8 @@ node* BST::search(node* r,int data)
 int BST::Altura(node* r)
 {
     if(r == nullptr)return 0;
-    int altEsq = Altura(r->getLeft());
-    int altDir = Altura(r->getRight());
+    int altEsq = Altura(r->left);
+    int altDir = Altura(r->right);
     return max(altEsq, altDir) + 1; // + 1
 }
 
@@ -227,14 +292,14 @@ void BST::printBT(const std::string& prefix, node* n, bool isLeft)
     {
         std::cout << prefix;
 
-        std::cout << (isLeft ? "├──" : "└──" );
+        std::cout << (isLeft ? "|--" : "|__" ); 
 
         // print the value of the node
-        std::cout << n->getData() << std::endl;
+        std::cout << n->data << std::endl;
 
         // enter the next tree level - left and right branch
-        printBT( prefix + (isLeft ? "│   " : "    "), n->getLeft(), true);
-        printBT( prefix + (isLeft ? "│   " : "    "), n->getRight(), false);
+        printBT( prefix + (isLeft ? "|   " : "    "), n->left, true);
+        printBT( prefix + (isLeft ? "|   " : "    "), n->right, false);
     }
 }
 
@@ -272,7 +337,8 @@ void BST::interfaceUser()
         cout << "   (3) Buscar\n";
         cout << "   (4) Altura da arvore\n";
         cout << "   (5) Imprimir\n";
-        cout << "   (6) Definir tempo de amostra da lista na função (3), (4) e (5)\n";
+        cout << "   (6) Definir tempo de amostra da lista na funcao (3), (4) e (5)\n";
+        cout << "   (7) In order\n";
         cout << "   (-1) Sair\n";
 
         cin >> op;
@@ -289,12 +355,18 @@ void BST::interfaceUser()
             cout << "Digite o valor que gostaria de inserir\n";
             cin >> val;
             insert(root, val);
+            cout << "Altura da arvore: " << Altura(root) - 1 << '\n';
+            printBT("", root, false);
+            sleepSec(tempoAmostra);
             break;
         case 2:
             clearTerminal();
             cout << "Digite o valor que gostaria de remover\n";
             cin >> val;
             remove(root, val);
+            cout << "Altura da arvore: " << Altura(root) - 1 << '\n';
+            printBT("", root, false);
+            sleepSec(tempoAmostra);
             break;
         case 3:
             clearTerminal();
@@ -309,6 +381,8 @@ void BST::interfaceUser()
             {
                 cout << "Valor encontrado\n";
             }
+            cout << "Altura da arvore: " << Altura(root) - 1 << '\n';
+            printBT("", root, false);
             sleepSec(tempoAmostra);
             break;
         case 4:
@@ -324,18 +398,76 @@ void BST::interfaceUser()
             break;
         case 6:
             clearTerminal();
-            cout << "Digite o tempo de amostra da lista na função (3), (4) e (5)\n";
+            cout << "Digite o tempo de amostra da lista na função (1), (2), (3), (4) e (5)\n";
             cin >> tempoAmostra;
+            break;
+        case 7:
+            clearTerminal();
+            //cout << "Digite o tempo de amostra da lista na função (3), (4) e (5)\n";
+            inOrder(root);
+            sleepSec(tempoAmostra);
+            break;
+        case 8:
+            //Balance tree
+            balanceTree();
+            sleepSec(tempoAmostra);
             break;
         default:
             clearTerminal();
-            cout << "Opção invalida\n";
+            cout << "Opcao invalida\n";
             //sleep_for(seconds(2));
             sleepSec(2);
             break;
         }
     }
 }
+
+// Tentei essa forma recursiva, mas não consegui fazer funcionar
+/*bool BST::remove(node* r, int data)
+{
+    if(r == nullptr)
+    {
+        return false;
+    }
+    else if(data < r->data)
+    {
+        return remove(r->left, data);
+    }
+    else if(data > r->data)
+    {
+        return remove(r->right, data);
+    }
+    else
+    {
+        if(r->left == nullptr and r->right == nullptr)
+        {
+            r = nullptr;
+            return true;
+        }
+        else if(r->left == nullptr and r->right != nullptr)
+        {
+            node* temp = r;
+            r = r->right;
+            delete temp;
+            return true;
+        }
+        else if(r->right == nullptr and r->left != nullptr)
+        {
+            node* temp = r;
+            r = r->left;
+            delete temp;
+            return true;
+        }else{
+            node* temp = r->right;
+            while(temp->left != nullptr)
+            {
+                temp = temp->left;
+            }
+            r->data = temp->data;
+            return remove(r->right, temp->data);
+        }
+    }
+}*/
 
 int main()
 {

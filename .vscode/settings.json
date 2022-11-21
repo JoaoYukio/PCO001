@@ -3,7 +3,9 @@
         "iostream": "cpp",
         "chrono": "cpp",
         "thread": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
