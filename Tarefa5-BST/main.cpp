@@ -38,8 +38,9 @@ class node{
 class BST{
     private:
         bool rootSet;
-        node* root;
+        
     public:
+        node* root;
         int numNodes;
         list<int> nodes;
         //int* nodes;
@@ -94,43 +95,9 @@ class BST{
         node* search(node* r, int data);
         int Altura(node* r);
         void printBT(const std::string& prefix, node* n, bool isLeft);
-        void balanceTree();
         void interfaceUser();
+        int* getNodes();
 };
-
-void BST::balanceTree()
-{
-    //nodes = new int[numNodes];
-    this->inOrder(this->root);
-    //print the nodes list
-    for(auto it = this->nodes.begin(); it != this->nodes.end(); it++)
-    {
-        cout << *it << " ";
-    }
-    auto lfront = this->nodes.begin();
-    auto it = this->nodes.begin();
-
-    advance(it, this->nodes.size()/2);
-
-    node* newRoot = new node(*it);
-    //this->setRoot(newRoot);
-    int i = this->nodes.size()/2;
-    while(i>0)
-    {
-        advance(it, i/2);
-        this->insert(newRoot, *it);
-        i = i/2;
-    }
-    i = this->nodes.size()/2;
-    int size = this->nodes.size();
-    while(i < size)
-    {
-        advance(it, i + (i/2));
-        this->insert(newRoot, *it);
-        i = i + (i/2);
-    }
-    this->root = newRoot;
-}
 
 // Insert a node recursively
 void BST::insert(node* r, int data)
@@ -313,6 +280,20 @@ void clearTerminal()
     return;
 }
 
+int* BST::getNodes()
+{
+    int* nodesArr = new int[this->nodes.size()];
+    int i = 0;
+    int num;
+    for(auto it = this->nodes.begin(); it != this->nodes.end(); it++)
+    {
+        num = *it;
+        nodesArr[i] = num;
+        i++;
+    }
+    return nodesArr;
+}
+
 void BST::interfaceUser()
 {
     int op;
@@ -407,11 +388,6 @@ void BST::interfaceUser()
             inOrder(root);
             sleepSec(tempoAmostra);
             break;
-        case 8:
-            //Balance tree
-            balanceTree();
-            sleepSec(tempoAmostra);
-            break;
         default:
             clearTerminal();
             cout << "Opcao invalida\n";
@@ -469,10 +445,49 @@ void BST::interfaceUser()
     }
 }*/
 
+node* sortedArrayToBST(int arr[], int start, int end)
+{
+    /* Base Case */
+    if (start > end)
+    return nullptr;
+ 
+    /* Get the middle element and make it root */
+    int mid = (start + end)/2;
+    node* root = new node(arr[mid]);
+ 
+    /* Recursively construct the left subtree
+    and make it left child of root */
+    root->left = sortedArrayToBST(arr, start,
+                                    mid - 1);
+ 
+    /* Recursively construct the right subtree
+    and make it right child of root */
+    root->right = sortedArrayToBST(arr, mid + 1, end);
+ 
+    return root;
+}
+
+//inorder from a node
+void inOrder(node* r)
+{
+    if(r == nullptr)
+    {
+        return;
+    }
+    inOrder(r->left);
+    cout << r->data << " ";
+    inOrder(r->right);
+}
+
+
 int main()
 {
+    //https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/
     BST tree;
     tree.interfaceUser();
-
+    int* arr = tree.getNodes();
+    node* root2 = sortedArrayToBST(arr, 0, tree.nodes.size());
+    cout << "Imprimindo arvore:\n";
+    inOrder(root2);
     return 0;
 }
